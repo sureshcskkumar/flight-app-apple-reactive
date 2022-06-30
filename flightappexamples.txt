@@ -1,0 +1,227 @@
+URLs:
+User Service:   http://localhost:8081
+Admin Service:  http://localhost:8082
+API Gateway:    http://localhost:7789
+Eureka Server:  http://localhost:8761
+
+
+Databases in the DB:
+drop database flightappflightservice;
+create database flightappflightservice;
+drop database flightappuserservice;
+create database flightappuserservice;
+use flightappuserservice;
+insert into flightappuserservice.users (email, password, role, first_name, last_name)
+	values('admin@flightapp.com', '$2a$10$tl1w9QkfENrz/nk5TOtS2O2KWYotBc04Fm/tqIuKrFwKvBUP8Y596', 'ROLE_ADMIN', 'adminfn', 'adminln');
+
+
+Admin Register
+http://localhost:8081/api/v1.0/register
+
+If allowed:
+{
+	"email": "admin@flightapp.com",
+	"password": "admin",
+	"role": "ROLE_ADMIN",
+	"firstName": "adminfn",
+	"lastName": "adminln"
+}
+
+Admin Register (insert into DB):
+insert into flightappuserservice.users (email, password, role, first_name, last_name)
+	values('admin@flightapp.com', '$2a$10$tl1w9QkfENrz/nk5TOtS2O2KWYotBc04Fm/tqIuKrFwKvBUP8Y596', 'ROLE_ADMIN', 'adminfn', 'adminln');
+
+admin bcrypt value:
+$2a$10$tl1w9QkfENrz/nk5TOtS2O2KWYotBc04Fm/tqIuKrFwKvBUP8Y596
+
+
+http://localhost:8081/api/v1.0/login
+Admin Login:
+{
+	"email": "admin@flightapp.com",
+	"password": "admin"
+}
+
+
+
+
+
+
+http://localhost:8081/api/v1.0/register
+User1 Register:
+{
+	"email": "user1@flightapp.com",
+	"password": "user1",
+	"role": "ROLE_USER",
+	"firstName": "user1fn",
+	"lastName": "user1ln"
+}
+
+User2 Register:
+{
+	"email": "user2@flightapp.com",
+	"password": "user2",
+	"role": "ROLE_USER",
+	"firstName": "user2fn",
+	"lastName": "user2ln"
+}
+
+http://localhost:8081/api/v1.0/login
+User1 Login:
+{
+	"email": "user1@flightapp.com",
+	"password": "user1"
+}
+User2 Login:
+{
+	"email": "user1@flightapp.com",
+	"password": "user1",
+}
+
+
+
+Flight Register:
+(Using gateway api:)
+http://localhost:8081/api/v1.0/flight/airline/register
+or
+http://localhost:7789/api/v1.0/flight/airline/register
+
+{
+    "name": "Indigo",
+    "contactNumber": "1111111111",
+    "blocked": "false"
+}
+
+
+
+
+Add Schedule:
+http://localhost:7789/flight/airline/schedule/add
+{
+    "airline": {
+		"id": 1,
+		"name": "Indigo",
+		"contactNumber": "1111111111",
+		"blocked": "false"
+	},
+    "source": "Bangalore",
+    "destination": "Delhi",
+	"flightDate": "2022-04-29",
+	"startTime": "10:30",
+	"endTime": "15:30",
+	"numberOfSeats": 150,
+	"numberOfVacantSeats": 150,
+	"ticketCost": 6000.00
+}
+{
+    "airline": {
+		"id": 1,
+		"name": "Indigo",
+		"contactNumber": "1111111111",
+		"blocked": "false"
+	},
+    "source": "Delhi",
+    "destination": "Bangalore",
+	"flightDate": "2022-04-30",
+	"startTime": "10:30",
+	"endTime": "15:30",
+	"numberOfSeats": 150,
+	"numberOfVacantSeats": 150,
+	"ticketCost": 5000.00
+}
+
+
+
+Get Airline List:
+http://localhost:7789/flight/airline/list
+
+
+
+
+Search Flight:
+http://localhost:8082/flight/search/?fromPlace=Bangalore&toPlace=Delhi&flightDate=2022-04-29
+http://localhost:8082/flight/search/?fromPlace=Bangalore&toPlace=Delhi&flightDate=2022-04-29&returnDate=2022-04-30
+
+
+
+Booking a ticket:
+http://localhost:8082/flight/booking/1
+where 1 is the scheduleId
+{
+	"source": "Bangalore",
+	"destination": "Delhi",
+    "passengers": 
+	[
+		{
+			"name": "Passenger 1",
+			"gender": "MALE",
+			"ageGroup": "ADULT",
+			"mealOption": "VEG"
+		},
+		{
+			"name": "Passenger 2",
+			"gender": "MALE",
+			"ageGroup": "ADULT",
+			"mealOption": "VEG"
+		}
+	]
+}
+
+
+Booking History for a logged in user:
+http://localhost:8082/flight/booking/history
+
+
+
+
+
+
+---------------------------------------------------------------------------------------
+For AWS:
+clean compile package -Dmaven.test.skip=true
+
+In EC2 instance:
+sudo yum install java-1.8.0-openjdk
+wget https://sureshcsk.s3.us-west-2.amazonaws.com/flightapp-eurekaserver-0.0.1-SNAPSHOT.jar
+wget https://sureshcsk.s3.us-west-2.amazonaws.com/flightapp-flight-service-0.0.1-SNAPSHOT.jar
+wget https://sureshcsk.s3.us-west-2.amazonaws.com/flightapp-gateway-0.0.1-SNAPSHOT.jar
+wget https://sureshcsk.s3.us-west-2.amazonaws.com/flightapp-user-service-0.0.1-SNAPSHOT.jar
+
+
+Eureka:
+java -jar flightapp-eurekaserver-0.0.1-SNAPSHOT.jar
+java -jar -Dspring.profiles.active=production flightapp-eurekaserver-0.0.1-SNAPSHOT.jar
+nohup java -jar -Dspring.profiles.active=production flightapp-eurekaserver-0.0.1-SNAPSHOT.jar > log_eureka.txt 2>&1 &
+
+
+Gateway:
+java -jar flightapp-gateway-0.0.1-SNAPSHOT.jar
+java -jar -Dspring.profiles.active=production flightapp-gateway-0.0.1-SNAPSHOT.jar
+nohup java -jar -Dspring.profiles.active=production flightapp-gateway-0.0.1-SNAPSHOT.jar  > log_gateway.txt 2>&1 &
+
+
+Flightapp-user-service:
+java -jar flightapp-user-service-0.0.1-SNAPSHOT.jar
+java -jar -Dspring.profiles.active=production flightapp-user-service-0.0.1-SNAPSHOT.jar
+nohup java -jar -Dspring.profiles.active=production flightapp-user-service-0.0.1-SNAPSHOT.jar > log_userservice.txt 2>&1 &
+
+
+Flightapp-flight-service:
+java -jar flightapp-flight-service-0.0.1-SNAPSHOT.jar
+java -jar -Dspring.profiles.active=production flightapp-flight-service-0.0.1-SNAPSHOT.jar
+nohup java -jar -Dspring.profiles.active=production flightapp-flight-service-0.0.1-SNAPSHOT.jar > log_flightservice.txt 2>&1 &
+---------------------------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------------------------
+AWS for frontend:
+wget https://sureshcsk.s3.us-west-2.amazonaws.com/flight-app-frontend.zip
+
+nohup npm run start > log_start.txt 2>&1 &
+nohup ng serve --host 0.0.0.0 --port 4200 > log_start.txt 2>&1 &
+
+
+nohup ng serve --host 0.0.0.0 --port 4200 --disable-host-check > log_start.txt 2>&1 &
+---------------------------------------------------------------------------------------
