@@ -22,7 +22,7 @@ public class AirlineRouter {
                                 .GET("/{airlineId}", airlineHandler::getAirlineById)
                                 .POST("", airlineHandler::addAirline)
                                 .PUT("/{airlineId}", airlineHandler::updateAirline)
-                                .DELETE("/{id}", airlineHandler::deleteAirline)
+                                .DELETE("/{airlineId}", airlineHandler::deleteAirline)
                                 // .GET("/stream", airlineHandler::getReviewsStream)
                                 )
                 // .GET("/v1/helloworld", (request -> ServerResponse.ok().bodyValue("HelloWorld")))
