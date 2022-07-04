@@ -33,14 +33,57 @@ public class AirlineHandler {
 	public Mono<ServerResponse> getAirlineById(ServerRequest request) {
 		String airlineId = request.pathVariable("airlineId");
 		return airlineRepository.findById(airlineId)
-					.flatMap(ServerResponse.ok()::bodyValue);
+					.flatMap(ServerResponse.ok()::bodyValue)
+					.switchIfEmpty(ServerResponse.notFound().build());
 	}
 	
 	public Mono<ServerResponse> updateAirline(ServerRequest request) {
 		
 		String airlineId = request.pathVariable("airlineId");
 		
-		return null;
+		Mono<Airline> airlineFromDB = airlineRepository.findById(airlineId);
+
+		return airlineFromDB.flatMap(airline -> request.bodyToMono(Airline.class)
+					.map(requestAirline -> {
+						airline.setName(requestAirline.getName());
+						airline.setBlocked(requestAirline.isBlocked());
+						airline.setContactNumber(requestAirline.getContactNumber());
+						return airline;
+					})
+					.flatMap(airlineRepository::save)
+					.flatMap(savedAirline -> ServerResponse.ok().bodyValue(savedAirline))
+					)
+					.switchIfEmpty(ServerResponse.notFound().build());
+		
+		/*
+		Mono<Airline> airlineFromRequest = 
+				request.bodyToMono(Airline.class)
+							.map(a->{
+								a.setId(airlineId);
+								return a;
+							});
+		*/
+		/*
+		 airlineFromDB.flatmap(airline -> request.bodyToMono(Airline.class)
+				.map(reqAirline -> {
+					airline.setName(reqAirline.getName());
+					airline.setBlocked(reqAirline.isBlocked());
+					airline.setContactNumber(reqAirline.getContactNumber());
+					return airline;
+				})
+				.flatMap(airlineRepository::save)
+				.flatMap(savedAirline -> ServerResponse.ok().bodyValue(savedAirline)))
+				// .switchIfEmpty(ServerResponse.notFound().build())
+				;
+			*/
+		
+	}
+	// deleteAirline
+	public Mono<ServerResponse> deleteAirline(ServerRequest request) {
+		String airlineId = request.pathVariable("airlineId");
+		return airlineRepository.findById(airlineId)
+				.flatMap(airline -> airlineRepository.deleteById(airlineId))
+				.then(ServerResponse.noContent().build());
 	}
 
 }
