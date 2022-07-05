@@ -1,5 +1,9 @@
 package com.flightapp.repository;
 
-public interface ScheduleRepository {
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+
+import com.flightapp.entity.Schedule;
+
+public interface ScheduleRepository extends ReactiveMongoRepository<Schedule, String> {
 
 }

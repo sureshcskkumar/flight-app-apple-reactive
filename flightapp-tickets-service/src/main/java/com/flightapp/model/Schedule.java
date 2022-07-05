@@ -1,22 +1,17 @@
-package com.flightapp.entity;
+package com.flightapp.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Document(collection = "schedules")
 public class Schedule {
 
-	@Id
 	private long id;
 
 	private String airlineId;

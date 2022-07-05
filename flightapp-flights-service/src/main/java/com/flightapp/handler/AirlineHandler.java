@@ -31,7 +31,7 @@ public class AirlineHandler {
 	}
 	
 	public Mono<ServerResponse> getAirlineById(ServerRequest request) {
-		String airlineId = request.pathVariable("airlineId");
+		String airlineId = request.pathVariable("id");
 		return airlineRepository.findById(airlineId)
 					.flatMap(ServerResponse.ok()::bodyValue)
 					.switchIfEmpty(ServerResponse.notFound().build());
@@ -39,7 +39,7 @@ public class AirlineHandler {
 	
 	public Mono<ServerResponse> updateAirline(ServerRequest request) {
 		
-		String airlineId = request.pathVariable("airlineId");
+		String airlineId = request.pathVariable("id");
 		
 		Mono<Airline> airlineFromDB = airlineRepository.findById(airlineId);
 
@@ -78,9 +78,9 @@ public class AirlineHandler {
 			*/
 		
 	}
-	// deleteAirline
+
 	public Mono<ServerResponse> deleteAirline(ServerRequest request) {
-		String airlineId = request.pathVariable("airlineId");
+		String airlineId = request.pathVariable("id");
 		return airlineRepository.findById(airlineId)
 				.flatMap(airline -> airlineRepository.deleteById(airlineId))
 				.then(ServerResponse.noContent().build());
