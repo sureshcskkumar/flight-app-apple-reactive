@@ -7,6 +7,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.flightapp.entity.Schedule;
+import com.flightapp.repository.AirlineRepository;
 import com.flightapp.repository.ScheduleRepository;
 
 import reactor.core.publisher.Flux;
@@ -18,6 +19,9 @@ public class ScheduleHandler {
 	@Autowired
 	private ScheduleRepository scheduleRepository;
 	
+	@Autowired
+	private AirlineRepository airlineRepository;
+	
 	public Mono<ServerResponse>  getSchedules(ServerRequest request) {
 		Flux<Schedule> scheduleFlux = scheduleRepository.findAll();
 		return ServerResponse.ok().body(scheduleFlux, Schedule.class);
@@ -25,7 +29,10 @@ public class ScheduleHandler {
 
 	public Mono<ServerResponse> addSchedule(ServerRequest request) {
 		return request.bodyToMono(Schedule.class)
-					.flatMap(scheduleRepository::save)
+					// .flatMap(scheduleRepository::save)
+					.flatMap(schedule -> {
+						return scheduleRepository.save(schedule);
+						})
 					.flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
 			
 	}
@@ -68,6 +75,13 @@ public class ScheduleHandler {
 		return scheduleRepository.findById(scheduleId)
 				.flatMap(schedule -> scheduleRepository.deleteById(scheduleId))
 				.then(ServerResponse.noContent().build());
+	}
+	
+	
+	public Mono<ServerResponse> getScheduleByAirlineId(ServerRequest request) {
+		String airlineId = request.pathVariable("airlineId");
+		Flux<Schedule> scheduleFlux = scheduleRepository.findByAirlineId(airlineId);
+		return ServerResponse.ok().body(scheduleFlux, Schedule.class);
 	}
 
 }
