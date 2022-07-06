@@ -38,7 +38,10 @@ public class ScheduleHandler {
 										.flatMap(isFlightHasAnySchedule -> {
 											if (isFlightHasAnySchedule) {
 												return scheduleRepository.findByAirlineId(schedule.getAirlineId())
-												.filter(s->(s.getStartTime().equals(schedule.getStartTime())))
+												.filter(s->{
+													return s.getFlightDate().equals(schedule.getFlightDate()) &&
+															s.getStartTime().equals(schedule.getStartTime());
+												})
 												.hasElements()
 												.flatMap(isFlightHasScheduleAtTime->{
 													if(isFlightHasScheduleAtTime) {
@@ -54,7 +57,7 @@ public class ScheduleHandler {
 								});
 						})
 					.flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue)
-					.switchIfEmpty(ServerResponse.status(HttpStatus.BAD_REQUEST).build());
+					.switchIfEmpty(ServerResponse.status(HttpStatus.BAD_REQUEST).bodyValue("Choose a different airline or a different time for the same airline"));
 			
 	}
 	

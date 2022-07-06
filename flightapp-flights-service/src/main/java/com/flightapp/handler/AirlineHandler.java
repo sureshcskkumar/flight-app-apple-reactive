@@ -25,9 +25,28 @@ public class AirlineHandler {
 
 	public Mono<ServerResponse> addAirline(ServerRequest request) {
 		return request.bodyToMono(Airline.class)
+				.flatMap(airline -> {
+					return airlineRepository.findByName(airline.getName())
+						.hasElements()
+						.flatMap(isNameUsed -> {
+							if (isNameUsed) {
+								return Mono.empty();
+							} else {
+								return airlineRepository.save(airline);
+							}
+						})
+					;
+				})
+				.flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue)
+				.switchIfEmpty(ServerResponse.badRequest().bodyValue("Airline with the given name already exists"))
+				;
+					
+	}
+	
+	public Mono<ServerResponse> addAirlineOld1(ServerRequest request) {
+		return request.bodyToMono(Airline.class)
 					.flatMap(airlineRepository::save)
 					.flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
-			
 	}
 	
 	public Mono<ServerResponse> getAirlineById(ServerRequest request) {
