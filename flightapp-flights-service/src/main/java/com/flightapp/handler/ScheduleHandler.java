@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import com.flightapp.entity.Airline;
 import com.flightapp.entity.Schedule;
 import com.flightapp.repository.AirlineRepository;
 import com.flightapp.repository.ScheduleRepository;
@@ -28,26 +27,57 @@ public class ScheduleHandler {
 		return ServerResponse.ok().body(scheduleFlux, Schedule.class);
 	}
 
+	
 	public Mono<ServerResponse> addSchedule(ServerRequest request) {
 		return request.bodyToMono(Schedule.class)
 					.flatMap(schedule -> {
 						return airlineRepository.findById(schedule.getAirlineId())
 							.flatMap(airline->{
+									return scheduleRepository.findByAirlineId(schedule.getAirlineId())
+										.hasElements()
+										.flatMap(isFlightHasAnySchedule -> {
+											if (isFlightHasAnySchedule) {
+												return scheduleRepository.findByAirlineId(schedule.getAirlineId())
+												.filter(s->(s.getStartTime().equals(schedule.getStartTime())))
+												.hasElements()
+												.flatMap(isFlightHasScheduleAtTime->{
+													if(isFlightHasScheduleAtTime) {
+														return Mono.empty();
+													}
+													return scheduleRepository.save(schedule);
+												});
+												
+											} else {
+												return scheduleRepository.save(schedule);
+											}
+										});
+								});
+						})
+					.flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue)
+					.switchIfEmpty(ServerResponse.status(HttpStatus.BAD_REQUEST).build());
+			
+	}
+	
+	public Mono<ServerResponse> addScheduleOld2(ServerRequest request) {
+		return request.bodyToMono(Schedule.class)
+					.flatMap(schedule -> {
+						return airlineRepository.findById(schedule.getAirlineId())
+							.flatMap(airline->{
 								return scheduleRepository.findByAirlineId(schedule.getAirlineId())
-									.filter(s->!(s.getStartTime().equals(schedule.getStartTime())))
-									.count()
-									.flatMap(count->{
-										if (count>0) {
+									.filter(s->(s.getStartTime().equals(schedule.getStartTime())))
+									.hasElements()
+									.flatMap(alreadyScheduled->{
+										if (!alreadyScheduled) {
 											return scheduleRepository.save(schedule);
 										}else {
-											return null;					
+											return Mono.empty();
 										}
 									});
 									//.flatMap(scheduleRepository::save);
 									
 										// return scheduleRepository.save(schedule);
 										// return schedule;
-								});
+								}).switchIfEmpty(scheduleRepository.save(schedule));
 						})
 					.flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue)
 					.switchIfEmpty(ServerResponse.status(HttpStatus.BAD_REQUEST).build());
@@ -55,7 +85,7 @@ public class ScheduleHandler {
 	}
 
 	
-	public Mono<ServerResponse> addSchedule2(ServerRequest request) {
+	public Mono<ServerResponse> addScheduleOld1(ServerRequest request) {
 		return request.bodyToMono(Schedule.class)
 				.flatMap(scheduleRepository::save)
 				.flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
