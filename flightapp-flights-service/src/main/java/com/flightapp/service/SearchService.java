@@ -3,13 +3,9 @@ package com.flightapp.service;
 import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.flightapp.entity.Schedule;
-import com.flightapp.exception.InvalidSearchException;
-import com.flightapp.model.SearchResultEntity;
 import com.flightapp.repository.ScheduleRepository;
 
 import reactor.core.publisher.Flux;
@@ -20,27 +16,36 @@ public class SearchService {
 	@Autowired
 	private ScheduleRepository scheduleRepository;
 
-	public Flux<SearchResultEntity> search(String fromPlace, String toPlace, String flightDate, String returnDate) throws InvalidSearchException {
-		
-		LocalDate flightDateAsDate = null;
-		LocalDate returnDateAsDate = null;
-		try {
-			flightDateAsDate = LocalDate.parse(flightDate);
-			if (returnDate!=null && !returnDate.isEmpty()) {
-				returnDateAsDate = LocalDate.parse(returnDate);
-			}
-		} catch (Exception e) {
-			throw new InvalidSearchException("Invalid date. Please enter a correct date!", e);
+	public Flux<Schedule> search(String fromPlace, String toPlace, LocalDate flightDate, LocalDate returnDate) {
+
+		Flux<Schedule> searchResultFlux = search(fromPlace,toPlace)
+				.filter(schedule -> {
+					if(flightDate.equals(schedule.getFlightDate())) {
+						System.out.println("Schedule: " + schedule.toString());
+						return true;
+					} else {
+						System.out.println("Schedule: " + schedule.toString());
+						return false;
+					}
+						
+				}).log();
+		Flux<Schedule> returnSearchResultFlux = null;
+		if (null != returnDate) {
+			returnSearchResultFlux = search(toPlace,fromPlace)
+					.filter(schedule -> {
+						return returnDate.equals(schedule.getFlightDate());
+					}).log();
+			searchResultFlux = searchResultFlux.concatWith(returnSearchResultFlux);
 		}
-		
-		Flux<SearchResultEntity>
+		return searchResultFlux;
+			// .map(schedule -> {
+			// 		return new SearchResultEntity(schedule);
+			// }).log();
 	}
 	
-	public Flux<Schedule> search(String fromPlace, String toPlace, String flightDate) {
-		
-		
-		
-		return null;
+	public Flux<Schedule> search(String fromPlace, String toPlace) {
+
+		return scheduleRepository.findBySourceAndDestination(fromPlace, toPlace);
 	}
 
 }

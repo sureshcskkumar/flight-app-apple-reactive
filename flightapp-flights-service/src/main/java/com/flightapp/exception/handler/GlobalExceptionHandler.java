@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.flightapp.exception.InvalidSearchException;
 
@@ -21,7 +22,7 @@ class ErrorResponse{
 
 }
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
 	
