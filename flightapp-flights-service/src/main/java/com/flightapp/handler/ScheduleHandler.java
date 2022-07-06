@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import com.flightapp.entity.Airline;
 import com.flightapp.entity.Schedule;
 import com.flightapp.repository.AirlineRepository;
 import com.flightapp.repository.ScheduleRepository;
@@ -29,12 +30,35 @@ public class ScheduleHandler {
 
 	public Mono<ServerResponse> addSchedule(ServerRequest request) {
 		return request.bodyToMono(Schedule.class)
-					// .flatMap(scheduleRepository::save)
 					.flatMap(schedule -> {
-						return scheduleRepository.save(schedule);
+						return airlineRepository.findById(schedule.getAirlineId())
+							.flatMap(airline->{
+								return scheduleRepository.findByAirlineId(schedule.getAirlineId())
+									.filter(s->!(s.getStartTime().equals(schedule.getStartTime())))
+									.count()
+									.flatMap(count->{
+										if (count>0) {
+											return scheduleRepository.save(schedule);
+										}else {
+											return null;					
+										}
+									});
+									//.flatMap(scheduleRepository::save);
+									
+										// return scheduleRepository.save(schedule);
+										// return schedule;
+								});
 						})
-					.flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
+					.flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue)
+					.switchIfEmpty(ServerResponse.status(HttpStatus.BAD_REQUEST).build());
 			
+	}
+
+	
+	public Mono<ServerResponse> addSchedule2(ServerRequest request) {
+		return request.bodyToMono(Schedule.class)
+				.flatMap(scheduleRepository::save)
+				.flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
 	}
 	
 	public Mono<ServerResponse> getScheduleById(ServerRequest request) {

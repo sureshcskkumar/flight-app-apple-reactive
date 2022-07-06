@@ -15,7 +15,7 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchResultEntity {
 
-	private long scheduleId;
+	private String scheduleId;
 	
 	private String airlineId;
 	

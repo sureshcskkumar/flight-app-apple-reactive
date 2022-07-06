@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 public class Schedule {
 
 	@Id
-	private long id;
+	private String id;
 
 	private String airlineId;
 
