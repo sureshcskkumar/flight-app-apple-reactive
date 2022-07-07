@@ -10,10 +10,13 @@ import com.flightapp.handler.AirlineHandler;
 import static org.springframework.web.reactive.function.server.RequestPredicates.path;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
+import org.springdoc.core.annotations.RouterOperations;
+
 @Configuration
 public class AirlineRouter {
 
     @Bean
+    @RouterOperations
     public RouterFunction<ServerResponse> airlineRoute(AirlineHandler airlineHandler) {
         return route()
                 .nest(path("/api/v1/airlines"), builder ->

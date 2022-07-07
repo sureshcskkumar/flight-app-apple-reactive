@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.flightapp.entity.Ticket;
-import com.flightapp.model.Passenger;
 import com.flightapp.service.TicketService;
 
 import reactor.core.publisher.Flux;

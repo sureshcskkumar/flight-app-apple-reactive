@@ -45,13 +45,13 @@ public class Ticket {
 	
 	private double cost;
 	
-	private UUID pnr;
+	private String pnr;
 	
-	@JsonIgnore
+	
 	private String bookingUserEmail;
 
 	public Ticket(String airlineName, String name, AgeGroup ageGroup, Gender gender, MealOption mealOption,
-			String source, String destination, LocalDate flightDate, LocalTime flightTime, double cost, UUID pnr,
+			String source, String destination, LocalDate flightDate, LocalTime flightTime, double cost, String pnr,
 			String bookingUserEmail) {
 		this.airlineName = airlineName;
 		this.name = name;
