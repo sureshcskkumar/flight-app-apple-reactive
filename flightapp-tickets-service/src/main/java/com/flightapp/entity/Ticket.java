@@ -12,6 +12,7 @@ import com.flightapp.model.AgeGroup;
 import com.flightapp.model.Gender;
 import com.flightapp.model.MealOption;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,13 +20,16 @@ import lombok.Setter;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Document(collection = "tickets")
 public class Ticket {
 
 	@Id
-	private long id;
+	private String id;
+	
+	private String scheduleId;
 
-	private String airlineName;
+	private String airlineId;
 
 	private String name;
 	
@@ -50,10 +54,10 @@ public class Ticket {
 	
 	private String bookingUserEmail;
 
-	public Ticket(String airlineName, String name, AgeGroup ageGroup, Gender gender, MealOption mealOption,
+	public Ticket(String airlineId, String name, AgeGroup ageGroup, Gender gender, MealOption mealOption,
 			String source, String destination, LocalDate flightDate, LocalTime flightTime, double cost, String pnr,
 			String bookingUserEmail) {
-		this.airlineName = airlineName;
+		this.airlineId = airlineId;
 		this.name = name;
 		this.ageGroup = ageGroup;
 		this.gender = gender;

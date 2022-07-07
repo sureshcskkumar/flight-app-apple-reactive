@@ -38,9 +38,11 @@ public class TicketController {
 		return ticketService.cancelTicketByPNR(pnr);
 	}
 	
-	@PostMapping("/booking/{scheduleId}")
-	public Flux<Ticket> bookTickets(@PathVariable String scheduleId,@RequestBody List<Ticket> tickets) {
-		return ticketService.bookTickets(scheduleId, tickets);
+	@PostMapping("/booking/{scheduleId}/{bookingUserEmail}")
+	public Flux<Ticket> bookTickets(@PathVariable("scheduleId") String scheduleId,
+									@PathVariable("bookingUserEmail") String bookingUserEmail,
+									@RequestBody List<Ticket> tickets) {
+		return ticketService.bookTickets(scheduleId, bookingUserEmail, tickets);
 	}
 	
 }

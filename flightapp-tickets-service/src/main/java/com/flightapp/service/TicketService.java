@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.flightapp.entity.Ticket;
@@ -38,30 +39,64 @@ public class TicketService {
 		return ticketRepository.deleteById(pnr);
 	}
 
-	public Flux<Ticket> bookTickets(String scheduleId, List<Ticket> tickets) {
+	public Flux<Ticket> bookTickets(String scheduleId, String bookingUserEmail, List<Ticket> tickets) {
 		
 		String url = UriComponentsBuilder.fromHttpUrl(FLIGHTS_URL)
-						.path(scheduleId)				
+						.pathSegment(scheduleId)			
 						.buildAndExpand().toString();
 		
-		Mono<Schedule> scheduleMono = webClient.get()
+		
+		
+		
+		WebClient.ResponseSpec responseSpec = webClient.get()
 										.uri(url)
-										.retrieve()
-										.bodyToMono(Schedule.class);
+										.retrieve();
+		
+		Mono<Schedule> scheduleMono =  responseSpec
+											.bodyToMono(Schedule.class);
+		
+		scheduleMono.map(schedule -> {
+			System.out.println(schedule);
+			return schedule;
+		}).log();
+
+		tickets.forEach((ticket)->{
+			ticket.setBookingUserEmail(bookingUserEmail);
+		});
+		Flux<Ticket> ticketFlux = ticketRepository.saveAll(tickets).log();
+		
+		ticketFlux = ticketFlux.map(ticket -> {
+			ticket.setPnr(ticket.getId());
+			return ticket;
+		}).log();
+		
+		ticketFlux = ticketFlux.map(ticket -> {
+			scheduleMono.map(schedule -> {
+				ticket.setAirlineId(schedule.getAirlineId());
+				ticket.setSource(schedule.getSource());
+				ticket.setDestination(schedule.getDestination());
+				ticket.setFlightDate(schedule.getFlightDate());
+				ticket.setFlightTime(schedule.getStartTime());
+				ticket.setCost(schedule.getTicketCost());
+				return ticket;
+			}).log();
+			return ticket;
+		}).log();
+		
+		ticketFlux = ticketRepository.saveAll(ticketFlux);
 		
 		Mono<Schedule> scheduleAfterTicketsBooked = scheduleMono.map(schedule -> {
 			int currentNumberOfVacantSeats = schedule.getNumberOfVacantSeats();
 			schedule.setNumberOfVacantSeats(currentNumberOfVacantSeats - tickets.size());
 			return schedule;
-		});
+		}).log();
 		
 		webClient.put()
 			.uri(url)
 			.body(scheduleAfterTicketsBooked, Schedule.class)
 			.retrieve()
 			.bodyToMono(Schedule.class);
-			
-		Flux<Ticket> ticketFlux = ticketRepository.saveAll(tickets);
+		
 		return ticketFlux;
 	}
 }
