@@ -12,7 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Schedule {
 
-	private long id;
+	private String id;
 
 	private String airlineId;
 
