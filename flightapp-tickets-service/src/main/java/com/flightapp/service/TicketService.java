@@ -10,7 +10,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.flightapp.entity.Ticket;
 import com.flightapp.model.Passenger;
-import com.flightapp.model.Schedule;
+import com.flightapp.entity.Schedule;
 import com.flightapp.repository.TicketRepository;
 
 import reactor.core.publisher.Flux;

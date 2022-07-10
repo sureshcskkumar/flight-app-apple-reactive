@@ -2,6 +2,7 @@ package com.flightapp.handler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -20,7 +21,12 @@ public class ScheduleHandler {
 	private ScheduleRepository scheduleRepository;
 	
 	@Autowired
+    private KafkaTemplate<String, Schedule> kafkaTemplate;
+	
+	@Autowired
 	private AirlineRepository airlineRepository;
+	
+	private static final String TOPIC = "schedule-delete-topic";
 	
 	public Mono<ServerResponse>  getSchedules(ServerRequest request) {
 		Flux<Schedule> scheduleFlux = scheduleRepository.findAll();
@@ -129,8 +135,15 @@ public class ScheduleHandler {
 
 	public Mono<ServerResponse> deleteSchedule(ServerRequest request) {
 		String scheduleId = request.pathVariable("id");
+		System.out.println("Schedule with following id is deleted: " + scheduleId);
+		
 		return scheduleRepository.findById(scheduleId)
-				.flatMap(schedule -> scheduleRepository.deleteById(scheduleId))
+				.flatMap(schedule -> {
+					
+					kafkaTemplate.send(TOPIC,schedule);
+					System.out.println("Kafka Producer has sent topic");
+					return scheduleRepository.deleteById(scheduleId);
+				})
 				.then(ServerResponse.noContent().build());
 	}
 	

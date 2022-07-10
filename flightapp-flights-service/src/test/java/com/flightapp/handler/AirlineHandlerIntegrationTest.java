@@ -56,7 +56,7 @@ public class AirlineHandlerIntegrationTest {
                 .is2xxSuccessful()
                 .expectBodyList(Airline.class)
                 .value(airlines -> {
-                    assertEquals(3, airlines.size());
+                    assertEquals(4, airlines.size());
                 });
     }
 

@@ -3,6 +3,7 @@ package com.flightapp.model;
 import java.time.LocalTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.flightapp.entity.Schedule;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

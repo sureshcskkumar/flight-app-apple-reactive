@@ -1,4 +1,4 @@
-package com.flightapp.model;
+package com.flightapp.entity;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
