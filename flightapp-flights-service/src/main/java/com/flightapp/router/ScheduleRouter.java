@@ -21,7 +21,7 @@ public class ScheduleRouter {
                                 .GET("", scheduleHandler::getSchedules)
                                 // .GET("/{id}", scheduleHandler::getScheduleById)
                                 .POST("", scheduleHandler::addSchedule)
-                                // .PUT("/{id}", scheduleHandler::updateSchedule)
+                                .PUT("/{id}", scheduleHandler::updateSchedule)
                                 .DELETE("/{id}", scheduleHandler::deleteSchedule)
                                 .GET("/forAirline/{airlineId}", scheduleHandler::getScheduleById)
                                 )
