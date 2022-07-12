@@ -50,6 +50,7 @@ public class TicketService {
 				.uri(url)
 				.retrieve()
 				.bodyToMono(Schedule.class)
+				.filter(schedule -> schedule.getNumberOfVacantSeats() > tickets.size())
 				.flatMapMany(schedule -> {
 					tickets.forEach(t-> {
 						t.setScheduleId(scheduleId);
