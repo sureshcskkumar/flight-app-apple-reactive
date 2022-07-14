@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.flightapp.entity.Ticket;
+import com.flightapp.model.Passenger;
 import com.flightapp.service.TicketService;
 
 import reactor.core.publisher.Flux;
@@ -39,10 +40,16 @@ public class TicketController {
 	}
 	
 	@PostMapping("/booking/{scheduleId}/{bookingUserEmail}")
-	public Flux<Ticket> bookTickets(@PathVariable("scheduleId") String scheduleId,
+	public Flux<Ticket> bookTicketsUsingPassengers(@PathVariable("scheduleId") String scheduleId,
 									@PathVariable("bookingUserEmail") String bookingUserEmail,
-									@RequestBody List<Ticket> tickets) {
-		return ticketService.bookTickets(scheduleId, bookingUserEmail, tickets);
+									@RequestBody List<Passenger> passengers) {
+		return ticketService.bookTicketsUsingPassengers(scheduleId, bookingUserEmail, passengers);
 	}
 	
+	@PostMapping("/booking/usingtickets/{scheduleId}/{bookingUserEmail}")
+	public Flux<Ticket> bookTicketsUsingTickets(@PathVariable("scheduleId") String scheduleId,
+									@PathVariable("bookingUserEmail") String bookingUserEmail,
+									@RequestBody List<Ticket> tickets) {
+		return ticketService.bookTicketsUsingTickets(scheduleId, bookingUserEmail, tickets);
+	}
 }

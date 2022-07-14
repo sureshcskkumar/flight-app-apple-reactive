@@ -1,6 +1,7 @@
 package com.flightapp.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.flightapp.entity.Schedule;
 import com.flightapp.entity.Ticket;
+import com.flightapp.model.Passenger;
 import com.flightapp.repository.TicketRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +41,64 @@ public class TicketService {
 	public Mono<Void> cancelTicketByPNR(String pnr) {
 		return ticketRepository.deleteById(pnr);
 	}
+	
 
-	public Flux<Ticket> bookTickets(String scheduleId, String bookingUserEmail, List<Ticket> tickets) {
+	public Flux<Ticket> bookTicketsUsingPassengers(String scheduleId, String bookingUserEmail, List<Passenger> passengers) {
+		
+		String url = UriComponentsBuilder.fromHttpUrl(FLIGHTS_URL)
+						.pathSegment(scheduleId)			
+						.buildAndExpand().toString();
+		
+		return webClient.get()
+				.uri(url)
+				.retrieve()
+				.bodyToMono(Schedule.class)
+				.filter(schedule -> schedule.getNumberOfVacantSeats() > passengers.size())
+				.flatMapMany(schedule -> {
+					List<Ticket> tickets = passengers.stream()
+						.map(p -> {
+							Ticket t = new Ticket();
+							
+							t.setName(p.getName());
+							t.setGender(p.getGender());
+							t.setAgeGroup(p.getAgeGroup());
+							t.setMealOption(p.getMealOption());
+							
+							t.setScheduleId(scheduleId);
+							t.setAirlineId(schedule.getAirlineId());
+							t.setSource(schedule.getSource());
+							t.setDestination(schedule.getDestination());
+							t.setFlightDate(schedule.getFlightDate());
+							t.setFlightTime(schedule.getStartTime());
+							t.setCost(schedule.getTicketCost());
+							t.setBookingUserEmail(bookingUserEmail);
+							
+							return t;
+						}).collect(Collectors.toList());
+
+					schedule.setNumberOfVacantSeats(schedule.getNumberOfVacantSeats() - passengers.size());
+					
+					webClient.put()
+						.uri(url)
+						.body(Mono.just(schedule), Schedule.class)
+						.retrieve()
+						.bodyToMono(Schedule.class)
+						.subscribe()
+						;
+					
+					Flux<Ticket> ticketFlux = ticketRepository.saveAll(tickets).map(t-> {
+						t.setPnr(t.getId());
+						return t;
+						});
+					return ticketRepository.saveAll(ticketFlux);
+				})
+				.log();
+
+	}
+
+
+
+	public Flux<Ticket> bookTicketsUsingTickets(String scheduleId, String bookingUserEmail, List<Ticket> tickets) {
 		
 		String url = UriComponentsBuilder.fromHttpUrl(FLIGHTS_URL)
 						.pathSegment(scheduleId)			
